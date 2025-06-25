@@ -19,7 +19,7 @@ function onInit() {
         markedCount: 0,
         //secsPassed
     }
-
+    
     gBoard = buildBoard()
     renderBoard(gBoard, '.game-container')
 }
@@ -46,9 +46,9 @@ function buildBoard() {
     
     board[1][1].isMine = true
     board[2][2].isMine = true
+    //setMinesAtRand(board)
     setMinesNegsCount(board) // update each cell with number of neighbors mines
-
-    console.log(board)
+    
     return board
 }
 
@@ -63,7 +63,7 @@ function renderBoard(mat, selector) {
             const cell = mat[i][j]
             const className = 'cell cell-' + i + '-' + j
             const cellContent = cell.isRevealed ? (cell.isMine ? '💣' : cell.minesAroundCount) : ''
-            strHTML += `<td class="${className}" onclick="onCellClicked(this, ${i}, ${j})">${cellContent}</td>`
+            strHTML += `<td class="${className}" onclick="onCellClicked(this, ${i}, ${j})" oncontextmenu="onCellMarked(this, ${i}, ${j}); return false;">${cellContent}</td>`
         }
         strHTML += '</tr>'
     }
@@ -97,5 +97,37 @@ function setMinesNegsCount(board) {
 
 
 function onCellClicked(elCell, i, j) {
-    
+    const cell = gBoard[i][j]
+    if (cell.isMarked) return
+
+    elCell.classList.add('cell-clicked')
+    cell.isRevealed = true
+    const cellContent = cell.isRevealed ? (cell.isMine ? '💣' : cell.minesAroundCount) : ''
+    elCell.innerHTML = (cell.minesAroundCount === 0) ? (cell.isMine ? '💣' : '') : cellContent
+}
+
+function onCellMarked(elCell, i, j) {
+    const cell = gBoard[i][j]
+    if (cell.isRevealed) return
+    cell.isMarked = !cell.isMarked
+    elCell.innerHTML = cell.isMarked ? FLAG : ''
+}
+
+
+function setMinesAtRand(board) {
+    var minesSet = 0
+    var max = gLevel.SIZE
+    var minesLeft = gLevel.MINES
+    while(minesSet < minesLeft) {
+        var i = getRandomInt(0, max)
+        var j = getRandomInt(0, max)
+        if (!board[i][j].isMine) {
+            board[i][j].isMine = true
+            minesSet++ 
+        }  
+    }
+}
+
+function checkGameOver() {
+
 }
