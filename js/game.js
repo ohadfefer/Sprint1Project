@@ -3,7 +3,7 @@
 const MINE = '💣'
 const FLAG = '🚩'
 
-
+const isGameOver = false
 
 var gLevel = {
     SIZE: 4,
@@ -22,6 +22,7 @@ function onInit() {
     
     gBoard = buildBoard()
     renderBoard(gBoard, '.game-container')
+    document.querySelector('.bombs-left').innerHTML = `${gLevel.MINES - gGame.markedCount}`
 }
 
 // A Matrix containing cell objects:
@@ -74,7 +75,7 @@ function renderBoard(mat, selector) {
 }
 
 
-function setMinesNegsCount(board) {
+function setMinesNegsCount(board) { // will shorten the code after 
     var size = gLevel.SIZE
     for(var i = 0; i < size; i++) {
         for(var j = 0; j < size; j++) {
@@ -98,19 +99,38 @@ function setMinesNegsCount(board) {
 
 function onCellClicked(elCell, i, j) {
     const cell = gBoard[i][j]
-    if (cell.isMarked) return
-
-    elCell.classList.add('cell-clicked')
+    if (cell.isMarked || cell.isRevealed) return
     cell.isRevealed = true
+    if (!cell.isMine) gGame.revealedCount++
+    elCell.classList.add('cell-clicked')
+
     const cellContent = cell.isRevealed ? (cell.isMine ? '💣' : cell.minesAroundCount) : ''
     elCell.innerHTML = (cell.minesAroundCount === 0) ? (cell.isMine ? '💣' : '') : cellContent
+
+    if (!cell.isMine && cell.minesAroundCount === 0) {
+        expandReveal(gBoard, i, j) 
+    }
+    
+    checkGameOver()
 }
 
 function onCellMarked(elCell, i, j) {
     const cell = gBoard[i][j]
     if (cell.isRevealed) return
+
     cell.isMarked = !cell.isMarked
     elCell.innerHTML = cell.isMarked ? FLAG : ''
+    if (cell.isMarked){
+        gGame.markedCount++
+        if (cell.isMine) gGame.revealedCount++
+    } 
+    if (!cell.isMarked) {
+        gGame.markedCount--
+        if (cell.isMine) gGame.revealedCount--
+    }
+
+    checkGameOver()
+    document.querySelector('.bombs-left').innerHTML = `${gLevel.MINES - gGame.markedCount}`
 }
 
 
@@ -129,5 +149,33 @@ function setMinesAtRand(board) {
 }
 
 function checkGameOver() {
+    if (gGame.revealedCount === gLevel.SIZE**2) console.log('victory')
+}
 
+function expandReveal(board, elCell, i, j) { // will shorten the code after
+    if (elCell.minesAroundCount === 0) {
+        for(var m = i - 1; m < i + 2; m++) {
+            if (m < 0 || m >= board.length) continue
+            for(var n = j - 1; n < j + 2; n++) {
+                if (n < 0 || n >= board.length) continue
+                if (m === i && n === j) continue
+
+                const negCell = board[m][n]
+                if (negCell.isRevealed || negCell.isMarked) continue
+                negCell.isRevealed = true
+                gGame.revealedCount++
+
+                const elNegCell = document.querySelector(`.cell-${m}-${n}`)
+                elNegCell.classList.add('cell-clicked')
+                elNegCell.innerHTML = negCell.isMine ? '💣' : negCell.minesAroundCount
+                
+            }
+        }
+    }
+    
+}
+
+
+function resetGame() {
+    onInit()
 }

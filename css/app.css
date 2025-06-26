@@ -1,11 +1,12 @@
 
-.game-container {
+body {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 800px;
     background-color: #f7dfaf;
 }
+
 
 table {
     border-collapse: collapse;
@@ -28,4 +29,23 @@ td.cell:hover {
 
 .cell-clicked {
     background-color: #ececec;
+}
+
+.bombs-left {
+    position: absolute;
+    top: 250px;
+    left: 350px;
+    font-size: 18px;
+    background-color: #ffffff;
+    padding: 5px 10px;
+    border: 1px solid #333;
+    border-radius: 3px;
+}
+
+.smiley-reset {
+    position: absolute;
+    top: 250px;
+    left: 400px;
+    font-size: 18px;
+    padding: 7px 15px;
 }
