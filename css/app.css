@@ -31,21 +31,75 @@ td.cell:hover {
     background-color: #ececec;
 }
 
+.mine-clicked {
+    background-color: #e04343;
+}
+
 .bombs-left {
     position: absolute;
-    top: 250px;
-    left: 350px;
+    top: 50px;
     font-size: 18px;
     background-color: #ffffff;
     padding: 5px 10px;
     border: 1px solid #333;
     border-radius: 3px;
+    left: 35%;
 }
+
+.timer {
+    position: absolute;
+    top: 60px;
+    font-size: 18px;
+    background-color: #ffffff;
+    padding: 5px 10px;
+    border: 1px solid #333;
+    border-radius: 3px;
+    left: 60%;
+}
+
+
+
+.lives {
+    position: absolute;
+    top: 50px;
+    font-weight: bold;
+    font-size: 20px;
+}
+
 
 .smiley-reset {
     position: absolute;
-    top: 250px;
-    left: 400px;
+    left: 40%; 
+    top: 60px;
     font-size: 18px;
-    padding: 7px 15px;
+    padding: 5px 10px;
+    background-color: #fff;
+    border: 1px solid #333;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.smiley-reset:hover {
+    background-color: #dfdfdf;
+}
+
+.difficulty-btns {
+    position: absolute;
+    bottom: 0; 
+    left: 50%; 
+    display: flex;
+    gap: 10px;
+}
+
+.difficulty {
+    font-size: 16px;
+    padding: 5px 10px;
+    background-color: #fff;
+    border: 1px solid #333;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.difficulty:hover {
+    background-color: #dfdfdf;
 }

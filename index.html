@@ -8,8 +8,17 @@
 </head>
 <body onload="onInit()">
 
+       
+    <div class="lives"></div>
     <div class="bombs-left"></div>
-    <button class="smiley-reset" onclick="resetGame()">😀</button>
+    <button class="smiley-reset" onclick="resetGame()"></button>
+    <div class="timer"></div>
+
+    <div class="difficulty-btns">
+        <button class="difficulty" onclick="setDifficulty1()">Beginner</button>
+        <button class="difficulty" onclick="setDifficulty2()">Medium</button>
+        <button class="difficulty" onclick="setDifficulty3()">Expert</button>
+    </div>
 
     <div class="game-container"></div>
 
