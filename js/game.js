@@ -4,12 +4,13 @@ const MINE = '💣'
 const FLAG = '🚩'
 
 var isFirstClick = true
+var gBoard
+var gGame
+
 var gLevel = {
     SIZE: 4,
     MINES: 2
 }
-var gBoard
-var gGame
 
 function onInit() {
     gGame = {
@@ -18,15 +19,22 @@ function onInit() {
         markedCount: 0,
         lives: 3,
         secsPassed: 0,
-        timerId: null
+        timerId: null,
+        hints: 3,
+        isHintActive: false,
+        isHintRevealing: false
     }
     
     gBoard = buildBoard()
     renderBoard(gBoard, '.game-container')
     document.querySelector('.bombs-left').innerHTML = `${gLevel.MINES - gGame.markedCount}`
-    document.querySelector('.lives').innerHTML = `Lives: ${gGame.lives}`
+    const lives = document.querySelectorAll('.life')
+    lives.forEach(life => {
+        life.classList.remove('life-used')
+    })
     document.querySelector('.timer').innerHTML = '000'
     document.querySelector('.smiley-reset').innerHTML = '😀'
+    updateHintsDisplay()
 }
 
 
@@ -61,7 +69,7 @@ function renderBoard(mat, selector) {
 
             const cell = mat[i][j]
             const className = 'cell cell-' + i + '-' + j
-            const cellContent = cell.isRevealed ? (cell.isMine ? '💣' : cell.minesAroundCount) : ''
+            const cellContent = cell.isRevealed ? (cell.isMine ? MINE : cell.minesAroundCount) : ''
             strHTML += `<td class="${className}" onclick="onCellClicked(this, ${i}, ${j})" oncontextmenu="onCellMarked(this, ${i}, ${j}); return false;">${cellContent}</td>`
         }
         strHTML += '</tr>'
@@ -73,7 +81,7 @@ function renderBoard(mat, selector) {
 }
 
 
-function setMinesNegsCount(board) { // will shorten the code after 
+function setMinesNegsCount(board) { 
     var size = gLevel.SIZE
     for(var i = 0; i < size; i++) {
         for(var j = 0; j < size; j++) {
@@ -96,27 +104,33 @@ function setMinesNegsCount(board) { // will shorten the code after
 
 
 function onCellClicked(elCell, i, j) {
-    if (!gGame.isOn) return 
+    if (!gGame.isOn || gGame.isHintRevealing) return
 
     const cell = gBoard[i][j]
     if (cell.isMarked || cell.isRevealed) return
 
+    if (gGame.isHintActive) {
+        gGame.isHintActive = false
+        gGame.hints--
+        revealHint(gBoard, i, j)
+        updateHintsDisplay()
+        return
+    }
+
     if (isFirstClick) {
-        console.log('first click')
         isFirstClick = false
-        cell.isRevealed = true
-        if (!cell.isMine) gGame.revealedCount++
         setMinesAtRand(gBoard, i, j)
         setMinesNegsCount(gBoard)
-        renderBoard(gBoard, '.game-container')
-
-        const renderElCell = document.querySelector(`.cell-${i}-${j}`)
-        renderElCell.classList.add('cell-clicked')
-        renderElCell.innerHTML = cell.minesAroundCount === 0 ? '' : cell.minesAroundCount
+        renderBoard(gBoard, '.game-container') 
         time()
+        expandReveal(gBoard, i, j)
+        return
     } else if (cell.isMine) {
-        gGame.lives-- 
-        document.querySelector('.lives').innerHTML = `Lives: ${gGame.lives}`
+        gGame.lives--
+        const lives = document.querySelectorAll('.life')
+        if (gGame.lives >= 0 && gGame.lives < lives.length) {
+            lives[gGame.lives].classList.add('life-used')
+        }
         if (gGame.lives > 0) {
             gGame.isOn = false
             elCell.classList.add('mine-clicked')
@@ -129,24 +143,15 @@ function onCellClicked(elCell, i, j) {
             }, 2000)
         }
     } else {
-        cell.isRevealed = true
-        if (!cell.isMine) gGame.revealedCount++
-        elCell.classList.add('cell-clicked')
-        const cellContent = cell.isMine ? '💣' : cell.minesAroundCount
-        elCell.innerHTML = (cell.minesAroundCount === 0) ? (cell.isMine ? '💣' : '') : cellContent
+       expandReveal(gBoard, i, j)
     }
 
-    if (!cell.isMine && cell.minesAroundCount === 0) {
-        expandReveal(gBoard, i, j) 
-    }
-    
     checkGameOver()
 }
 
 function onCellMarked(elCell, i, j) {
-    if (!gGame.isOn) return 
-    if (isFirstClick) return
-    
+    if (!gGame.isOn || isFirstClick || gGame.isHintRevealing) return
+
     const cell = gBoard[i][j]
     if (cell.isRevealed) return
 
@@ -181,26 +186,29 @@ function setMinesAtRand(board, firstClickI, firstClickJ) {
     }
 }
 
+function expandReveal(board, i, j) {
+    const cell = board[i][j]
+    if (cell.isRevealed || cell.isMarked || cell.isMine) return
 
-function expandReveal(board, i, j) { // will shorten the code after
+    cell.isRevealed = true
+    gGame.revealedCount++
+    const elCell = document.querySelector(`.cell-${i}-${j}`)
+    elCell.classList.add('cell-clicked')
+    elCell.innerHTML = cell.minesAroundCount === 0 ? '' : cell.minesAroundCount
 
-    for(var m = i - 1; m < i + 2; m++) {
-        if (m < 0 || m >= board.length) continue
-        for(var n = j - 1; n < j + 2; n++) {
-            if (n < 0 || n >= board.length) continue
-            if (m === i && n === j) continue
+    if (cell.minesAroundCount > 0) return
 
-            const negCell = board[m][n]
-            if (negCell.isRevealed || negCell.isMarked) continue
-            negCell.isRevealed = true
-            gGame.revealedCount++
-
-            const elNegCell = document.querySelector(`.cell-${m}-${n}`)
-            elNegCell.classList.add('cell-clicked')
-            elNegCell.innerHTML = (negCell.minesAroundCount === 0) ? '' : negCell.minesAroundCount        
+    for (var m = -1; m <= 1; m++) {
+        for (var n = -1; n <= 1; n++) {
+            const im = i + m
+            const jn = j + n
+            if (im < 0 || jn < 0 || im >= board.length || jn >= board[0].length) continue
+            if (im === i && jn === j) continue
+            expandReveal(board, im, jn)
         }
     }
 }
+
 
 
 function revealMines(board) {
@@ -253,6 +261,10 @@ function resetGame() {
     isFirstClick = true
     if (gGame && gGame.timerId) clearInterval(gGame.timerId)
     onInit()
+    const lives = document.querySelectorAll('.life')
+    lives.forEach(life => {
+        life.classList.remove('life-used')
+    })
 }
 
 function time() {
@@ -262,4 +274,73 @@ function time() {
         gGame.secsPassed++
         document.querySelector('.timer').innerHTML = gGame.secsPassed.toString().padStart(3, '0')
     }, 1000)
+}
+
+function onHintClicked(hintId) {
+    if (!gGame.isOn || gGame.hints === 0 || gGame.isHintActive || isFirstClick) return
+    gGame.isHintActive = true
+    const elHint = document.querySelector(`.hint:nth-child(${hintId})`)
+    elHint.classList.add('hint-active')
+}
+
+function revealHint(board, i, j) {
+    gGame.isHintRevealing = true
+    const cellsToReveal = []
+    const cell = board[i][j]
+    if (!cell.isRevealed && !cell.isMarked) {
+        cellsToReveal.push({ i, j, wasRevealed: cell.isRevealed })
+        cell.isRevealed = true
+        const elCell = document.querySelector(`.cell-${i}-${j}`)
+        elCell.classList.add('cell-clicked')
+        elCell.innerHTML = cell.isMine ? MINE : (cell.minesAroundCount === 0 ? '' : cell.minesAroundCount)
+    }
+    const originalRevealedCount = gGame.revealedCount
+    
+    const tempExpandReveal = (board, i, j) => {
+        for (var m = i - 1; m < i + 2; m++) {
+            if (m < 0 || m >= board.length) continue
+            for (var n = j - 1; n < j + 2; n++) {
+                if (n < 0 || n >= board[0].length) continue
+                if (m === i && n === j) continue
+                const negCell = board[m][n]
+                if (negCell.isRevealed || negCell.isMarked) continue
+                cellsToReveal.push({ i: m, j: n, wasRevealed: negCell.isRevealed })
+                negCell.isRevealed = true
+                const elNegCell = document.querySelector(`.cell-${m}-${n}`)
+                elNegCell.classList.add('cell-clicked')
+                elNegCell.innerHTML = negCell.isMine ? MINE : (negCell.minesAroundCount === 0 ? '' : negCell.minesAroundCount)
+            }
+        }
+    }
+    tempExpandReveal(board, i, j)
+    
+    
+    gGame.revealedCount = originalRevealedCount
+    setTimeout(() => {
+        for (var k = 0; k < cellsToReveal.length; k++) {
+            const { i, j, wasRevealed } = cellsToReveal[k]
+            const cell = board[i][j]
+            if (!wasRevealed) {
+                cell.isRevealed = false
+                const elCell = document.querySelector(`.cell-${i}-${j}`)
+                elCell.classList.remove('cell-clicked')
+                elCell.innerHTML = cell.isMarked ? FLAG : ''
+            }
+        }
+        const activeHint = document.querySelector('.hint-active')
+        if (activeHint) activeHint.classList.replace('hint-active', 'hint-used')
+        gGame.isHintRevealing = false
+    }, 1500)
+}
+
+function updateHintsDisplay() {
+    const hints = document.querySelectorAll('.hint')
+    for (var i = 0; i < hints.length; i++) { 
+        if (i < gGame.hints) {
+            hints[i].classList.remove('hint-used')
+        } else {
+            hints[i].classList.add('hint-used')
+        }
+        hints[i].classList.remove('hint-active')
+    }
 }

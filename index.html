@@ -3,25 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Minesweeper</title>
     <link rel="stylesheet" href="css/app.css">
 </head>
 <body onload="onInit()">
+    <h1 class="game-title">Minesweeper</h1>
+    <div class="game-wrapper">
+        <div class="lives-container">
+            <span class="life">💖</span>
+            <span class="life">💖</span>
+            <span class="life">💖</span>
+        </div>
+        <div class="hints-container">
+            <span class="hint" onclick="onHintClicked(1)">💡</span>
+            <span class="hint" onclick="onHintClicked(2)">💡</span>
+            <span class="hint" onclick="onHintClicked(3)">💡</span>
+        </div>
+        <div class="board-controls">
+            <span class="timer">000</span>
+            <span class="bombs-left">0</span>
+        </div>
+        <div class="smiley-container">
+            <span class="smiley-reset" onclick="resetGame()">😀</span>
+        </div>
+        <div class="game-container">
 
-       
-    <div class="lives"></div>
-    <div class="bombs-left"></div>
-    <button class="smiley-reset" onclick="resetGame()"></button>
-    <div class="timer"></div>
-
-    <div class="difficulty-btns">
-        <button class="difficulty" onclick="setDifficulty1()">Beginner</button>
-        <button class="difficulty" onclick="setDifficulty2()">Medium</button>
-        <button class="difficulty" onclick="setDifficulty3()">Expert</button>
+        </div>
+        <div class="difficulty-container">
+            <button class="difficulty" onclick="setDifficulty1()">Beginner</button>
+            <button class="difficulty" onclick="setDifficulty2()">Medium</button>
+            <button class="difficulty" onclick="setDifficulty3()">Expert</button>
+        </div>
     </div>
-
-    <div class="game-container"></div>
-
     <script src="js/utils.js"></script>
     <script src="js/game.js"></script>
 </body>
